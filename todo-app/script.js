@@ -1,112 +1,118 @@
-// Simple Todo App - JavaScript Practice
+const STORAGE_KEY = "tasks";
 
+const taskForm = document.getElementById("taskForm");
 const taskInput = document.getElementById("taskInput");
-const addTaskBtn = document.getElementById("addTaskBtn");
 const taskList = document.getElementById("taskList");
 const taskCounter = document.getElementById("taskCounter");
+const emptyState = document.getElementById("emptyState");
+const storageWarning = document.getElementById("storageWarning");
 
-let taskCount = 0;
+let canSaveTasks = true;
+const tasks = loadTasks();
 
-function updateCounter() {
-  taskCounter.textContent = "Tasks: " + taskCount;
+function loadTasks() {
+  try {
+    const savedTasks = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? "[]");
+    if (!Array.isArray(savedTasks) || !savedTasks.every(isStoredTask)) {
+      throw new TypeError("Invalid task list");
+    }
+
+    // Earlier versions stored only the task text.
+    return savedTasks.map((task) => (
+      typeof task === "string" ? { text: task, completed: false } : task
+    ));
+  } catch {
+    // Leave unreadable data in storage so it can still be recovered.
+    canSaveTasks = false;
+    storageWarning.textContent = "Saved tasks could not be loaded. Changes will only last until you reload.";
+    return [];
+  }
+}
+
+function isStoredTask(task) {
+  return typeof task === "string" || (
+    task !== null && typeof task === "object" &&
+    typeof task.text === "string" && typeof task.completed === "boolean"
+  );
 }
 
 function saveTasks() {
-  const tasks = [];
-  const spans = taskList.querySelectorAll("li span");
+  if (!canSaveTasks) return;
 
-  spans.forEach(function (span) {
-    tasks.push(span.textContent);
-  });
-  
-  localStorage.setItem("tasks", JSON.stringify(tasks));
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
+    storageWarning.textContent = "";
+  } catch {
+    storageWarning.textContent = "Changes could not be saved. They may be lost when you reload.";
+  }
 }
 
-function createTaskElement(taskText) {
-  const li = document.createElement("li")
+function updateTaskCount() {
+  taskCounter.textContent = `Tasks: ${tasks.length}`;
+  emptyState.hidden = tasks.length > 0;
+}
 
-  const checkbox = document.createElement("input")
+function createTaskElement(task) {
+  const item = document.createElement("li");
+  const label = document.createElement("label");
+  label.className = "task-label";
+
+  const checkbox = document.createElement("input");
   checkbox.type = "checkbox";
-  checkbox.style.marginRight = "8px";
-
-  const textSpan = document.createElement("span");
-  textSpan.textContent = taskText;
-
-  checkbox.addEventListener("change", function() {
-    if (checkbox.checked) {
-      textSpan.style.textDecoration = "line-through";
-    } else {
-      textspan.style.textDecoration = "none";
-    }
-  });
-
-  // Delete button 
-  const deleteBtn = document.createElement("button");
-  deleteBtn.textContent = "Delete";
-  deleteBtn.style.marginLeft = "10px";
-
-  deleteBtn.addEventListener("click", function() {
-    li.remove();  // simpler als taskList.removeChild(li) 
-
-    if (taskCount > 0) {
-      taskCount--;
-    }
-    
-    updateCounter();
+  checkbox.checked = task.completed;
+  checkbox.addEventListener("change", () => {
+    task.completed = checkbox.checked;
     saveTasks();
   });
 
-  li.appendChild(checkbox);
-  li.appendChild(textSpan);
-  li.appendChild(deleteBtn);
+  const text = document.createElement("span");
+  text.textContent = task.text;
+  label.append(checkbox, text);
 
-  return li;
+  const deleteButton = document.createElement("button");
+  deleteButton.type = "button";
+  deleteButton.className = "delete-button";
+  deleteButton.textContent = "Delete";
+  deleteButton.setAttribute("aria-label", `Delete: ${task.text}`);
+  deleteButton.addEventListener("click", () => {
+    const nextItem = item.nextElementSibling ?? item.previousElementSibling;
+
+    tasks.splice(tasks.indexOf(task), 1);
+    item.remove();
+    updateTaskCount();
+    saveTasks();
+
+    const nextControl = nextItem?.querySelector(".delete-button") ?? taskInput;
+    nextControl.focus();
+  });
+
+  item.append(label, deleteButton);
+  return item;
 }
 
-function addTodo() {
-  const taskText = taskInput.value.trim();
-  if (taskText === "") return;
+taskInput.addEventListener("input", () => taskInput.setCustomValidity(""));
 
-  const li = createTaskElement(taskText);
-  taskList.appendChild(li);
-  
-  taskCount++;
-  updateCounter();
-  saveTasks();
+taskForm.addEventListener("submit", (event) => {
+  event.preventDefault();
+  const text = taskInput.value.trim();
 
-  taskInput.value = "";
-  taskInput.focus();
-}
-
-function loadTasks() {
-  const saved = localStorage.getItem("tasks");
-  if (!saved) {
-    updateCounter();
+  if (!text) {
+    taskInput.setCustomValidity("Enter a task.");
+    taskInput.reportValidity();
     return;
   }
 
-  const tasks = JSON.parse(saved);
+  const task = { text, completed: false };
+  tasks.push(task);
+  taskList.append(createTaskElement(task));
+  updateTaskCount();
+  saveTasks();
 
-  tasks.forEach(function (taskText) {
-    const li = createElement(taskText);
-    taskList.appendChild(li);
-  });
+  taskForm.reset();
+  taskInput.focus();
+});
 
-  taskCount = taskList.children.lenght;
-  updateCounter();
+for (const task of tasks) {
+  taskList.append(createTaskElement(task));
 }
-
-addTaskBtn.addEventListener("click", addTodo);
-
-  // Enter-Taste soll auch hinzufügen
-  taskInput.addEventListener("keydown", function(event) {
-    if (event.key === "Enter") {
-      addTodo();
-    }
-  });
-
-  // Load tasks on page start
-  loadTasks();
-
-
-                            
+updateTaskCount();

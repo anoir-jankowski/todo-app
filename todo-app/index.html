@@ -1,21 +1,28 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <link rel="stylesheet" href="style.css">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>The Todo App</title>
+  <link rel="stylesheet" href="style.css">
+  <title>Todo App</title>
 </head>
 <body>
-  <h1>Todo App</h1>
+  <main>
+    <h1>Todo App</h1>
 
-  <p id="taskCounter">Task: O</p>
-  
-  <label for="taskInput">New Task</label>
-  <input type="text" id="taskInput" placeholder="New task">
-  
-  <button id="addTaskBtn">Add Task</button>
-  <ul id="taskList"></ul>
+    <form id="taskForm">
+      <label for="taskInput">New task</label>
+      <div class="task-entry">
+        <input type="text" id="taskInput" placeholder="e.g. Review JavaScript notes" required>
+        <button type="submit">Add task</button>
+      </div>
+    </form>
+
+    <p id="storageWarning" role="status"></p>
+    <p id="taskCounter" role="status">Tasks: 0</p>
+    <p id="emptyState">No tasks yet.</p>
+    <ul id="taskList" aria-label="Tasks"></ul>
+  </main>
 
   <script src="script.js"></script>
 </body>
