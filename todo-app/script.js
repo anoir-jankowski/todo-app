@@ -36,7 +36,7 @@ function createTaskElement(taskText) {
     if (checkbox.checked) {
       textSpan.style.textDecoration = "line-through";
     } else {
-      textspan.style.textDecoration = "none";
+      textSpan.style.textDecoration = "none";
     }
   });
 
@@ -88,11 +88,11 @@ function loadTasks() {
   const tasks = JSON.parse(saved);
 
   tasks.forEach(function (taskText) {
-    const li = createElement(taskText);
+    const li = createTaskElement(taskText);
     taskList.appendChild(li);
   });
 
-  taskCount = taskList.children.lenght;
+  taskCount = taskList.children.length;
   updateCounter();
 }
 
