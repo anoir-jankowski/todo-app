@@ -12,7 +12,7 @@ A simple and clean Todo application built with JavaScript to practice DOM manipu
 - Delete tasks
 - Mark tasks as completed
 - Task counter
-- Saves tasks using Local Storage (data persists after refresh)
+- Saves tasks in Local Storage (tasks persist after refresh, completion status is not saved)
 
 
 
@@ -40,7 +40,7 @@ A simple and clean Todo application built with JavaScript to practice DOM manipu
 
 
 ## Status
-Finished basic todo app with persistent funcionality
+Finished basic todo app with persistent functionality
 
 
 ## Notes 
